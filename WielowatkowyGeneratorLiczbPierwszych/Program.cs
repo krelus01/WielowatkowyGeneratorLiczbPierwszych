@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Diagnostics;
 
 namespace WielowatkowyGeneratorLiczbPierwszych
 {
@@ -34,6 +35,8 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                 {
                     case 1:
                         List<string> _sPrzeproc = new List<string>();
+                        Stopwatch parallelloop = new Stopwatch();
+                        Stopwatch foreachloop = new Stopwatch();
 
                         Console.WriteLine("Ile liczb chcesz wygenerować? Zakres od 1 - 100 000 000");
                         _bSprMenu = int.TryParse(Console.ReadLine(), out _iLiczbaDoWygen);
@@ -45,14 +48,19 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                         else
                         {
                             Console.WriteLine("Proszę czekać...");
+                            parallelloop.Start();
                             Parallel.For(0, _iLiczbaDoWygen, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount}, i =>
                             {
                                 _sPrzeproc.Add(rnd.Next(1, _iLiczbaDoWygen).ToString() + Environment.NewLine);
                             });
+                            parallelloop.Stop();
+                            foreachloop.Start();
                             foreach (string s in _sPrzeproc)
-                                new LiczbyDoPliku().Zapis(s, @"F:\WygenLiczby.txt");
+                                LDP.Zapis(s, @"F:\WygenLiczby.txt");
+                            foreachloop.Stop();
                             _sPrzeproc.Clear();
                             Console.WriteLine("Zakończono!");
+                            Console.WriteLine("Czas parallel: " + parallelloop.ElapsedMilliseconds.ToString() + ", czas foreach: " + foreachloop.ElapsedMilliseconds.ToString());
                             Console.ReadKey();
                         }
                             break;
