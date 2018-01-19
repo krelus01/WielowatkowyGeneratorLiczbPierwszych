@@ -51,22 +51,55 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                             parallelloop.Start();
                             Parallel.For(0, _iLiczbaDoWygen, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount}, i =>
                             {
-                                _sPrzeproc.Add(rnd.Next(1, _iLiczbaDoWygen).ToString() + Environment.NewLine);
+                                _sPrzeproc.Add(rnd.Next(1, _iLiczbaDoWygen).ToString());
                             });
                             parallelloop.Stop();
                             foreachloop.Start();
-                            foreach (string s in _sPrzeproc)
-                                LDP.Zapis(s, @"F:\WygenLiczby.txt");
+                            using (var output = File.AppendText(@"F:\WygenLiczby.txt"))
+                            {
+                                output.AutoFlush = true;
+                                foreach (string s in _sPrzeproc)
+                                    output.WriteLine(s);
+                            }
                             foreachloop.Stop();
                             _sPrzeproc.Clear();
                             Console.WriteLine("Zakończono!");
                             Console.WriteLine("Czas parallel: " + parallelloop.ElapsedMilliseconds.ToString() + ", czas foreach: " + foreachloop.ElapsedMilliseconds.ToString());
+                            foreachloop.Reset(); parallelloop.Reset();
                             Console.ReadKey();
                         }
                             break;
                     case 2:
+                        int _iLiczba = 0, _iNPierwsz = 0;
+                        var _sPrzeprocPierw = File.ReadLines(@"F:\WygenLiczby.txt");
+                        List<string> _sPrzeprocPierwOK = new List<string>();
                         Console.WriteLine("Trwa budowanie pliku wynikowego...");
-                        LZP.Odczyt(@"F:\GenLiczb.txt");
+                        Parallel.For(0, _sPrzeprocPierw.Count(), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, i =>
+                        {
+                            foreach (var s in _sPrzeprocPierw)
+                            {
+                                _iLiczba = int.Parse(s);
+                                for (int j = 1; j <= _iLiczba; j++)
+                                {
+                                    if (_iLiczba % i == 0)
+                                        _iNPierwsz++;
+                                }
+                                if (_iNPierwsz == 2)
+                                {
+                                    _sPrzeprocPierwOK.Add(s);
+                                    _iNPierwsz = 0;
+                                }
+                                _iLiczba = 0;
+                                _iNPierwsz = 0;
+                            }
+                            using (var output = File.AppendText(@"F:\WynikPierwsze.txt"))
+                            {
+                                output.AutoFlush = true;
+                                foreach (string s in _sPrzeprocPierwOK)
+                                    output.WriteLine(s);
+                            }
+                        });
+                        _sPrzeprocPierwOK.Clear();
                         Console.WriteLine("Gotowe!");
                         Console.ReadKey();
                         break;
