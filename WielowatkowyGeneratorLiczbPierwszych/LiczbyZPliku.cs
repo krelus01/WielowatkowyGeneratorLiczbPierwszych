@@ -33,6 +33,7 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                 _iLiczba = 0;
                 _iNPierwsz = 0;
             }
+            fs.Close();
         }
     }
 }

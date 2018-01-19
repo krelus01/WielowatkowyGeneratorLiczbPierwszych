@@ -33,9 +33,11 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                 switch (_iMenuWybor)
                 {
                     case 1:
+                        List<string> _sPrzeproc = new List<string>();
+
                         Console.WriteLine("Ile liczb chcesz wygenerować? Zakres od 1 - 100 000 000");
                         _bSprMenu = int.TryParse(Console.ReadLine(), out _iLiczbaDoWygen);
-                        if (_bSprMenu == false)
+                        if (_bSprMenu == false || _iLiczbaDoWygen < 1 || _iLiczbaDoWygen > 100000000)
                         {
                             Console.WriteLine("Zły wybór!");
                             Console.ReadKey();
@@ -43,10 +45,13 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                         else
                         {
                             Console.WriteLine("Proszę czekać...");
-                            Parallel.For(0, _iLiczbaDoWygen, new ParallelOptions { MaxDegreeOfParallelism = 5 }, i =>
+                            Parallel.For(0, _iLiczbaDoWygen, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount}, i =>
                             {
-                                new LiczbyDoPliku().Zapis(rnd.Next(1, _iLiczbaDoWygen).ToString() + Environment.NewLine, @"F:\GenLiczb.txt");
+                                _sPrzeproc.Add(rnd.Next(1, _iLiczbaDoWygen).ToString() + Environment.NewLine);
                             });
+                            foreach (string s in _sPrzeproc)
+                                new LiczbyDoPliku().Zapis(s, @"F:\WygenLiczby.txt");
+                            _sPrzeproc.Clear();
                             Console.WriteLine("Zakończono!");
                             Console.ReadKey();
                         }
@@ -62,6 +67,8 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                         break;
 
                     default:
+                        Console.WriteLine("Zły wybór!");
+                        Console.ReadKey();
                         break;
                 }
             }
