@@ -14,10 +14,8 @@ namespace WielowatkowyGeneratorLiczbPierwszych
         {
             bool _bSprMenu;
             int _iMenuWybor = 0;
-            int _iLiczbaDoWygen = 0;
+            int _iLiczbDoWygen = 0;
             Random rnd = new Random(Guid.NewGuid().GetHashCode());
-            LiczbyDoPliku LDP = new LiczbyDoPliku();
-            LiczbyZPliku LZP = new LiczbyZPliku();
 
             Console.WriteLine("Aplikacja generująca losowe liczby całkowite oraz wyszukująca liczby pierwsze.");
             Console.WriteLine("Menu aplikacji:");
@@ -39,8 +37,8 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                         Stopwatch foreachloop = new Stopwatch();
 
                         Console.WriteLine("Ile liczb chcesz wygenerować? Zakres od 1 - 100 000 000");
-                        _bSprMenu = int.TryParse(Console.ReadLine(), out _iLiczbaDoWygen);
-                        if (_bSprMenu == false || _iLiczbaDoWygen < 1 || _iLiczbaDoWygen > 100000000)
+                        _bSprMenu = int.TryParse(Console.ReadLine(), out _iLiczbDoWygen);
+                        if (_bSprMenu == false || _iLiczbDoWygen < 1 || _iLiczbDoWygen > 100000000)
                         {
                             Console.WriteLine("Zły wybór!");
                             Console.ReadKey();
@@ -49,9 +47,9 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                         {
                             Console.WriteLine("Proszę czekać...");
                             parallelloop.Start();
-                            Parallel.For(0, _iLiczbaDoWygen, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount}, i =>
+                            Parallel.For(0, _iLiczbDoWygen, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount}, i =>
                             {
-                                _sPrzeproc.Add(rnd.Next(1, _iLiczbaDoWygen).ToString());
+                                _sPrzeproc.Add(rnd.Next(1, _iLiczbDoWygen).ToString());
                             });
                             parallelloop.Stop();
                             foreachloop.Start();
@@ -81,7 +79,7 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                                 _iLiczba = int.Parse(s);
                                 for (int j = 1; j <= _iLiczba; j++)
                                 {
-                                    if (_iLiczba % i == 0)
+                                    if (_iLiczba % j == 0)
                                         _iNPierwsz++;
                                 }
                                 if (_iNPierwsz == 2)
