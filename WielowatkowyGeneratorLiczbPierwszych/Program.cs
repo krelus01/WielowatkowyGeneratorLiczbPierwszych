@@ -12,17 +12,23 @@ namespace WielowatkowyGeneratorLiczbPierwszych
     {
         static void Main(string[] args)
         {
+            //Sekcja zmiennych:
             bool _bSprMenu;
             int _iMenuWybor = 0;
             int _iLiczbDoWygen = 0;
             Random rnd = new Random(Guid.NewGuid().GetHashCode());
+            Task[] tasks = new Task[4];
+            Object lok = new Object();
 
+            //Sekcja z menu aplikacji:
             Console.WriteLine("Aplikacja generująca losowe liczby całkowite oraz wyszukująca liczby pierwsze.");
             Console.WriteLine("Menu aplikacji:");
             Console.WriteLine("1. Wygeneruj losowe liczby całkowite do pliku.");
             Console.WriteLine("2. Wyszukaj liczby pierwsze z pliku.");
             Console.WriteLine("0. Wyjdż.");
             _bSprMenu = int.TryParse(Console.ReadLine(), out _iMenuWybor);
+
+            //Sekcja główny program + sprawdzanie wyboru dla menu
             if (_bSprMenu == false)
             {
                 Console.WriteLine("Zły wybór!");
@@ -32,12 +38,11 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                 switch (_iMenuWybor)
                 {
                     case 1:
-                        List<string> _sPrzeproc = new List<string>();
-                        Stopwatch parallelloop = new Stopwatch();
-                        Stopwatch foreachloop = new Stopwatch();
-
+                        //Sekcja generowania liczb losowych do pliku. Menu wyboru ilości liczb do wygenerowania.
                         Console.WriteLine("Ile liczb chcesz wygenerować? Zakres od 1 - 100 000 000");
                         _bSprMenu = int.TryParse(Console.ReadLine(), out _iLiczbDoWygen);
+
+                        //Sekcja generowania liczb + sprawdzenie wyboru ilości liczb do wygenerowaniia.
                         if (_bSprMenu == false || _iLiczbDoWygen < 1 || _iLiczbDoWygen > 100000000)
                         {
                             Console.WriteLine("Zły wybór!");
@@ -45,25 +50,33 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                         }
                         else
                         {
+                            //Sekcja generowania do pliku zadanej liczby cyfr w 4 osobnych zadaniach
                             Console.WriteLine("Proszę czekać...");
-                            parallelloop.Start();
-                            Parallel.For(0, _iLiczbDoWygen, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount}, i =>
+                            for (int i=0; i<=tasks.Length-1; i++)
                             {
-                                _sPrzeproc.Add(rnd.Next(1, _iLiczbDoWygen).ToString());
-                            });
-                            parallelloop.Stop();
-                            foreachloop.Start();
-                            using (var output = File.AppendText(@"F:\WygenLiczby.txt"))
-                            {
-                                output.AutoFlush = true;
-                                foreach (string s in _sPrzeproc)
-                                    output.WriteLine(s);
+                                tasks[i] = Task.Factory.StartNew( ()=> {
+                                    int _itestowy = 0;
+                                    List<string> _sPrzeproc = new List<string>();
+
+                                    for (int j = 1; j <= _iLiczbDoWygen / 4; j++)
+                                    {
+                                        _sPrzeproc.Add(rnd.Next(1, _iLiczbDoWygen).ToString());
+                                        _itestowy++;
+                                    }
+                                    Console.WriteLine("Task " + Task.CurrentId.ToString() + " wykonał " + _itestowy.ToString() + " iteracji.");
+                                    lock(lok)
+                                    {
+                                        using (var output = File.AppendText(@"F:\WygenLiczby.txt"))
+                                        {
+                                            output.AutoFlush = true;
+                                            foreach (string s in _sPrzeproc)
+                                                output.WriteLine(s);
+                                        }
+                                    }
+                                });
                             }
-                            foreachloop.Stop();
-                            _sPrzeproc.Clear();
+                            Task.WaitAll(tasks);
                             Console.WriteLine("Zakończono!");
-                            Console.WriteLine("Czas parallel: " + parallelloop.ElapsedMilliseconds.ToString() + ", czas foreach: " + foreachloop.ElapsedMilliseconds.ToString());
-                            foreachloop.Reset(); parallelloop.Reset();
                             Console.ReadKey();
                         }
                             break;
