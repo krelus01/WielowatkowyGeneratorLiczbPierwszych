@@ -69,48 +69,83 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                                         using (var output = File.AppendText(@"F:\WygenLiczby.txt"))
                                         {
                                             output.AutoFlush = true;
+                                            int _iproc = 0;
+                                            System.Threading.Thread.Sleep(100);
                                             foreach (string s in _sPrzeproc)
+                                            {
                                                 output.WriteLine(s);
+                                                _iproc++;
+                                                Console.SetCursorPosition(0, (int)Task.CurrentId+15);
+                                                Console.Write("Task " + Task.CurrentId.ToString() + " ukończył: " + ((_iproc * 100 / _sPrzeproc.Count())).ToString() + "%");
+                                            }
                                         }
                                     }
                                 });
                             }
+
+                            //Zakończenie działania sekcji generowania do pliku.
                             Task.WaitAll(tasks);
+                            Console.SetCursorPosition(0, 20);
                             Console.WriteLine("Zakończono!");
                             Console.ReadKey();
                         }
                             break;
                     case 2:
+                        //Sekcja wyszukiwania liczb pierwszych z pliku z wygenerowanymi liczbami /  Sekcja zmiennych
                         int _iLiczba = 0, _iNPierwsz = 0;
-                        var _sPrzeprocPierw = File.ReadLines(@"F:\WygenLiczby.txt");
+                        var _stemp = File.ReadLines(@"F:\WygenLiczby.txt");
+                        List<string> _sPrzeprocPierw = new List<string>(); foreach (string s in _stemp) _sPrzeprocPierw.Add(s);
                         List<string> _sPrzeprocPierwOK = new List<string>();
+
+                        //Sekcja wyszukiwania w czterech osobnych zadaniach
                         Console.WriteLine("Trwa budowanie pliku wynikowego...");
-                        Parallel.For(0, _sPrzeprocPierw.Count(), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, i =>
+                        for (int i=0; i<=tasks.Length-1;i++)
                         {
-                            foreach (var s in _sPrzeprocPierw)
-                            {
-                                _iLiczba = int.Parse(s);
-                                for (int j = 1; j <= _iLiczba; j++)
-                                {
-                                    if (_iLiczba % j == 0)
-                                        _iNPierwsz++;
-                                }
-                                if (_iNPierwsz == 2)
-                                {
-                                    _sPrzeprocPierwOK.Add(s);
-                                    _iNPierwsz = 0;
-                                }
-                                _iLiczba = 0;
-                                _iNPierwsz = 0;
-                            }
-                            using (var output = File.AppendText(@"F:\WynikPierwsze.txt"))
-                            {
-                                output.AutoFlush = true;
-                                foreach (string s in _sPrzeprocPierwOK)
-                                    output.WriteLine(s);
-                            }
-                        });
-                        _sPrzeprocPierwOK.Clear();
+                            tasks[i] = Task.Factory.StartNew(() =>
+                           {
+                               int _iIlosc = (_sPrzeprocPierw.Count() - 1) / 4;
+                               int _iPocz = _iIlosc * (int)Task.CurrentId - _iIlosc + 1;
+
+                               Console.WriteLine("Task " + Task.CurrentId.ToString() + " rozpoczyna od " + _iPocz.ToString() + " linii.");
+                               for (int j=_iPocz; j<=_iIlosc; j++)
+                               {
+                                   _iLiczba = int.Parse(_sPrzeprocPierw[j]);
+                                   for (int k = 1; k <= _iLiczba; k++)
+                                   {
+                                       if (_iLiczba % k == 0)
+                                           _iNPierwsz++;
+                                   }
+                                   if (_iNPierwsz == 2)
+                                   {
+                                       _sPrzeprocPierwOK.Add(_sPrzeprocPierw[j]);
+                                       _iNPierwsz = 0;
+                                   }
+                                   _iLiczba = 0;
+                                   _iNPierwsz = 0;
+
+                                   lock(lok)
+                                   {
+                                       using (var output = File.AppendText(@"F:\WynikPierwsze.txt"))
+                                       {
+                                           output.AutoFlush = true;
+                                           int _iproc = 0;
+                                           System.Threading.Thread.Sleep(100);
+                                           foreach (string s in _sPrzeprocPierwOK)
+                                           {
+                                               output.WriteLine(s);
+                                               _iproc++;
+                                               Console.SetCursorPosition(0, (int)Task.CurrentId + 15);
+                                               Console.Write("Task " + Task.CurrentId.ToString() + " ukończył: " + ((_iproc * 100 / _sPrzeprocPierwOK.Count())).ToString() + "%");
+                                           }
+                                       }
+                                   }
+                               }
+                           });
+                        }
+
+                        //Zakończenie działania sekcji.
+                        Task.WaitAll(tasks);
+                        Console.SetCursorPosition(0, 20);
                         Console.WriteLine("Gotowe!");
                         Console.ReadKey();
                         break;
