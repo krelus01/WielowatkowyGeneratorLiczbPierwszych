@@ -103,11 +103,11 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                         {
                             tasks[i] = Task.Factory.StartNew(() =>
                            {
-                               int _iIlosc = (_sPrzeprocPierw.Count() - 1) / 4;
-                               int _iPocz = _iIlosc * (int)Task.CurrentId - _iIlosc + 1;
+                               int _iIlosc = _sPrzeprocPierw.Count() / 4;
+                               int _iPocz = _iIlosc * (int)Task.CurrentId - _iIlosc;
 
                                Console.WriteLine("Task " + Task.CurrentId.ToString() + " rozpoczyna od " + _iPocz.ToString() + " linii.");
-                               for (int j=_iPocz; j<=_iIlosc; j++)
+                               for (int j=_iPocz; j<=_iPocz + _iIlosc - 1; j++)
                                {
                                    _iLiczba = int.Parse(_sPrzeprocPierw[j]);
                                    for (int k = 1; k <= _iLiczba; k++)
@@ -122,21 +122,20 @@ namespace WielowatkowyGeneratorLiczbPierwszych
                                    }
                                    _iLiczba = 0;
                                    _iNPierwsz = 0;
-
-                                   lock(lok)
+                               }
+                               lock (lok)
+                               {
+                                   using (var output = File.AppendText(@"F:\WynikPierwsze.txt"))
                                    {
-                                       using (var output = File.AppendText(@"F:\WynikPierwsze.txt"))
+                                       output.AutoFlush = true;
+                                       int _iproc = 0;
+                                       System.Threading.Thread.Sleep(100);
+                                       foreach (string s in _sPrzeprocPierwOK)
                                        {
-                                           output.AutoFlush = true;
-                                           int _iproc = 0;
-                                           System.Threading.Thread.Sleep(100);
-                                           foreach (string s in _sPrzeprocPierwOK)
-                                           {
-                                               output.WriteLine(s);
-                                               _iproc++;
-                                               Console.SetCursorPosition(0, (int)Task.CurrentId + 15);
-                                               Console.Write("Task " + Task.CurrentId.ToString() + " ukończył: " + ((_iproc * 100 / _sPrzeprocPierwOK.Count())).ToString() + "%");
-                                           }
+                                           output.WriteLine(s);
+                                           _iproc++;
+                                           Console.SetCursorPosition(0, (int)Task.CurrentId + 15);
+                                           Console.Write("Task " + Task.CurrentId.ToString() + " ukończył: " + ((_iproc * 100 / _sPrzeprocPierwOK.Count())).ToString() + "%");
                                        }
                                    }
                                }
